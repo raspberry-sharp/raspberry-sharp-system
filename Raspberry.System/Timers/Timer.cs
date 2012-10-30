@@ -6,7 +6,10 @@ using System.Threading;
 
 namespace Raspberry.Timers
 {
-    internal static class Timer
+    /// <summary>
+    /// Provides access to timing features.
+    /// </summary>
+    public static class Timer
     {
         #region Methods
 
