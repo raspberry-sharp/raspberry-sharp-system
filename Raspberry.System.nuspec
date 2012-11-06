@@ -14,7 +14,6 @@
       Raspberry.System is a Mono/.NET assembly providing access to Raspberry Pi system features.
 
       It is an initiative of the Raspberry# Community, aimed at providing tools and information concerning use of Raspberry Pi boards with Mono/.NET framework.
-      Parts of this work are based on [BCM2835 C library](http://www.open.com.au/mikem/bcm2835/).
 
       Visit project [Github site](https://github.com/raspberry-sharp/raspberry-sharp-system/) for documentation and samples.
     </description>
@@ -30,7 +29,6 @@
     <file src="Raspberry.System\bin\release\Raspberry.System.dll" target="lib\net40" />
     <file src="Raspberry.System\bin\release\Raspberry.System.pdb" target="lib\net40" />
     <file src="Raspberry.System\bin\release\Raspberry.System.xml" target="lib\net40" />
-    <file src="Raspberry.System\bin\release\libbcm2835.so" target="lib\net40" />
     <file src="Raspberry.System\**\*.cs" target="src" />
   </files>
 </package>
