@@ -7,9 +7,6 @@ using System.Threading;
 
 namespace Raspberry.Timers
 {
-    /// <summary>
-    /// Represents a high-resolution timer
-    /// </summary>
     public class HighResolutionTimer : ITimer
     {
         #region Fields
@@ -24,9 +21,6 @@ namespace Raspberry.Timers
 
         #region Instance Management
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="HighResolutionTimer"/> class.
-        /// </summary>
         public HighResolutionTimer()
         {
             if (!Board.Current.IsRaspberryPi)
@@ -113,21 +107,6 @@ namespace Raspberry.Timers
             }
         }
 
-        /// <summary>
-        /// Sleeps the specified delay.
-        /// </summary>
-        /// <param name="delay">The delay.</param>
-        public static void Sleep(decimal delay)
-        {
-            var timeSpec = new Interop.timespec
-                               {
-                                   tv_sec = (long) (delay/1000),
-                                   tv_nsec = (long) ((delay%1000)*1000000)
-                               };
-
-            Interop.nanosleep(ref timeSpec);
-        }
-
         #endregion
 
         #region Private Helpers
@@ -145,6 +124,11 @@ namespace Raspberry.Timers
         }
 
         private void NoOp(){}
+
+        public static void Sleep(decimal delay)
+        {
+            Interop.bcm2835_delayMicroseconds((uint) (delay*1000));
+        }
 
         #endregion
     }

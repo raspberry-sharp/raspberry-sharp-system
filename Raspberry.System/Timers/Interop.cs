@@ -6,14 +6,8 @@ namespace Raspberry.Timers
     {
         #region Methods
 
-        public struct timespec
-        {
-            public long tv_sec;
-            public long tv_nsec;
-        };
-
-        [DllImport("libc.so.6")]
-        public static extern void nanosleep(ref timespec timespec);
+        [DllImport("libbcm2835.so", EntryPoint = "bcm2835_delayMicroseconds")]
+        public static extern void bcm2835_delayMicroseconds(uint microseconds);
 
         #endregion
     }

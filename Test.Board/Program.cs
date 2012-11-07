@@ -1,5 +1,4 @@
 ﻿using System;
-using Raspberry.Timers;
 
 namespace Test.Board
 {
@@ -15,7 +14,6 @@ namespace Test.Board
             {
                 Console.WriteLine("Raspberry Pi running on {0} processor", board.Processor);
                 Console.WriteLine("Firmware rev{0}, board rev{1}", board.Firmware, board.Revision);
-                Timer.Sleep(2000);
                 Console.WriteLine();
                 Console.WriteLine("Serial number: {0}", board.SerialNumber);
             }
