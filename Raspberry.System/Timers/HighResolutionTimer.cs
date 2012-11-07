@@ -7,6 +7,9 @@ using System.Threading;
 
 namespace Raspberry.Timers
 {
+    /// <summary>
+    /// Represents a high-resolution timer.
+    /// </summary>
     public class HighResolutionTimer : ITimer
     {
         #region Fields
@@ -72,6 +75,18 @@ namespace Raspberry.Timers
         #region Methods
 
         /// <summary>
+        /// Sleeps the specified delay.
+        /// </summary>
+        /// <param name="delay">The delay.</param>
+        public static void Sleep(decimal delay)
+        {
+            if (delay >= 100)
+                Thread.Sleep((int)delay);
+            else
+                Interop.bcm2835_delayMicroseconds((uint)(delay * 1000));
+        }
+
+        /// <summary>
         /// Starts this instance.
         /// </summary>
         /// <param name="startDelay">The delay before the first occurence, in milliseconds.</param>
@@ -124,11 +139,6 @@ namespace Raspberry.Timers
         }
 
         private void NoOp(){}
-
-        public static void Sleep(decimal delay)
-        {
-            Interop.bcm2835_delayMicroseconds((uint) (delay*1000));
-        }
 
         #endregion
     }
