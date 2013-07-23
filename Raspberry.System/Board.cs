@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 
@@ -12,6 +13,7 @@ namespace Raspberry
     /// <summary>
     /// Represents the Raspberry Pi mainboard.
     /// </summary>
+    /// <remarks>Version and revisions are based on <see cref="http://raspberryalphaomega.org.uk/2013/02/06/automatic-raspberry-pi-board-revision-detection-model-a-b1-and-b2/"/>.</remarks>
     public class Board
     {
         #region Fields
@@ -74,7 +76,7 @@ namespace Raspberry
             {
                 string revision;
                 int firmware;
-                if (settings.TryGetValue("Revision", out revision) && !string.IsNullOrEmpty(revision) && int.TryParse(revision, out firmware))
+                if (settings.TryGetValue("Revision", out revision) && !string.IsNullOrEmpty(revision) && int.TryParse(revision, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out firmware))
                     return firmware;
 
                 return 0;
@@ -96,8 +98,41 @@ namespace Raspberry
         }
 
         /// <summary>
+        /// Gets the model.
+        /// </summary>
+        /// <returns>The model name (<c>A</c> or <c>B</c>) if known; otherwise, <c>(char)0</c>.</returns>
+        public char Model
+        {
+            get
+            {
+                var firmware = Firmware;
+                switch(firmware)
+                {
+                    case 0x7:
+                    case 0x8:
+                    case 0x9:
+                        return 'A';
+
+                    case 0x2:
+                    case 0x3:
+                    case 0x4:
+                    case 0x5:
+                    case 0x6:
+                    case 0xd:
+                    case 0xe:
+                    case 0xf:
+                        return 'B';
+
+                    default:
+                        return (char)0;
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets the board revision.
         /// </summary>
+        /// <returns>The board revision for the given <see cref="Model"/> if known; otherwise, <c>0</c>.</returns>
         public int Revision
         {
             get
@@ -105,16 +140,25 @@ namespace Raspberry
                 var firmware = Firmware;
                 switch (firmware)
                 {
-                    case 2:
-                    case 3:
-                        return 1;
-                    case 4:
-                    case 5:
-                    case 6:
-                        return 2;
+                    case 0x7:
+                    case 0x8:
+                    case 0x9:
+                        return 1;   // Model A, rev1
+
+                    case 0x2:
+                    case 0x3:
+                        return 1;   // Model B, rev1
+
+                    case 0x4:
+                    case 0x5:
+                    case 0x6:
+                    case 0xd:
+                    case 0xe:
+                    case 0xf:
+                        return 2;   // Model B, rev2
 
                     default:
-                        return 0;
+                        return 0;   // Unknown
                 }
             }
         }

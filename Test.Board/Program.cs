@@ -13,7 +13,7 @@ namespace Test.Board
             else
             {
                 Console.WriteLine("Raspberry Pi running on {0} processor", board.Processor);
-                Console.WriteLine("Firmware rev{0}, board rev{1}", board.Firmware, board.Revision);
+                Console.WriteLine("Firmware rev{0}, board model {1} rev{2}", board.Firmware, board.Model, board.Revision);
                 Console.WriteLine();
                 Console.WriteLine("Serial number: {0}", board.SerialNumber);
             }
