@@ -18,5 +18,5 @@ Raspberry.System provides utilities for Raspberry Pi boards, while using .NET co
 You can easily add a reference to it in your Visual Studio projects using the **[Raspberry.System Nuget](https://www.nuget.org/packages/Raspberry.System)**.
 
 It currently support the following features:
-+ Automatic detection of various Raspberry Pi revisions, for now **Raspberry B rev1 and rev2**
++ Automatic detection of various Raspberry Pi revisions, as of 2013-09, **Raspberry Pi model B rev1 and rev2 and Raspberry Pi model A**
 + High resolution (about 1µs) timers
