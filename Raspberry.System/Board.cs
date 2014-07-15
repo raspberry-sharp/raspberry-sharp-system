@@ -98,6 +98,21 @@ namespace Raspberry
         }
 
         /// <summary>
+        /// Gets a value indicating whether Raspberry Pi board is overclocked.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if Raspberry Pi is overclocked; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsOverclocked
+        {
+            get
+            {
+                var firmware = Firmware;
+                return (firmware & 0xFFFF0000) != 0;
+            }
+        }
+
+        /// <summary>
         /// Gets the model.
         /// </summary>
         /// <returns>The model name (<c>A</c> or <c>B</c>) if known; otherwise, <c>(char)0</c>.</returns>
@@ -106,7 +121,7 @@ namespace Raspberry
             get
             {
                 var firmware = Firmware;
-                switch(firmware)
+                switch(firmware & 0xFFFF)
                 {
                     case 0x7:
                     case 0x8:
@@ -121,6 +136,7 @@ namespace Raspberry
                     case 0xd:
                     case 0xe:
                     case 0xf:
+                    case 0x10:
                         return 'B';
 
                     default:
@@ -138,7 +154,7 @@ namespace Raspberry
             get
             {
                 var firmware = Firmware;
-                switch (firmware)
+                switch (firmware & 0xFFFF)
                 {
                     case 0x7:
                     case 0x8:
@@ -157,6 +173,9 @@ namespace Raspberry
                     case 0xf:
                         return 2;   // Model B, rev2
 
+                    case 0x10:
+                        return 3;   // Model B+, rev3
+ 
                     default:
                         return 0;   // Unknown
                 }
@@ -177,10 +196,9 @@ namespace Raspberry
                     .Select(l =>
                     {
                         var separator = l.IndexOf(':');
-                        if (separator < 0)
-                            return new KeyValuePair<string, string>(l, null);
-                        else
-                            return new KeyValuePair<string, string>(l.Substring(0, separator).Trim(), l.Substring(separator + 1).Trim());
+                        return separator >= 0 
+                            ? new KeyValuePair<string, string>(l.Substring(0, separator).Trim(), l.Substring(separator + 1).Trim()) 
+                            : new KeyValuePair<string, string>(l, null);
                     })
                     .ToDictionary(p => p.Key, p => p.Value);
 
