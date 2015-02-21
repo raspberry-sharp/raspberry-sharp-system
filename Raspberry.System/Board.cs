@@ -21,7 +21,7 @@ namespace Raspberry
         private static readonly Lazy<Board> board = new Lazy<Board>(LoadBoard);
         private readonly Dictionary<string, string> settings;
 
-        private const string raspberryPiProcessor = "BCM2708";
+        private string[] raspberryPiProcessor = new string[] { "BCM2708", "BCM2709" };
         
         #endregion
 
@@ -52,7 +52,7 @@ namespace Raspberry
         /// </value>
         public bool IsRaspberryPi
         {
-            get { return string.Equals(Processor, raspberryPiProcessor, StringComparison.InvariantCultureIgnoreCase); }
+            get { return (Array.IndexOf(raspberryPiProcessor, Processor) >= 0); }
         }
 
         /// <summary>
@@ -139,6 +139,9 @@ namespace Raspberry
                     case 0x10:
                         return 'B';
 
+                    case 0x1a01040:
+                        return '2';
+
                     default:
                         return (char)0;
                 }
@@ -175,6 +178,9 @@ namespace Raspberry
 
                     case 0x10:
                         return 3;   // Model B+, rev3
+                    
+                    case 0x1a01040:
+                        return 4;
  
                     default:
                         return 0;   // Unknown
