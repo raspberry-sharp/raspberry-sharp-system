@@ -139,7 +139,8 @@ namespace Raspberry
                     case 0x10:
                         return 'B';
 
-                    case 0x1a01040:
+                    case 0x1040:
+                    case 0x1041:
                         return '2';
 
                     default:
@@ -179,7 +180,8 @@ namespace Raspberry
                     case 0x10:
                         return 3;   // Model B+, rev3
                     
-                    case 0x1a01040:
+                    case 0x1040:
+                    case 0x1041:
                         return 4;
  
                     default:
@@ -197,17 +199,30 @@ namespace Raspberry
             try
             {
                 const string filePath = "/proc/cpuinfo";
-                var settings = File.ReadAllLines(filePath)
-                    .Where(l => !string.IsNullOrEmpty(l))
-                    .Select(l =>
+                string[] cpuInfo = File.ReadAllLines(filePath);
+                Dictionary<string, string> settings = new Dictionary<string, string>();
+                string suffix = "";
+                foreach(var l in cpuInfo)
+                {
+                    var separator = l.IndexOf(':');
+                    string key = l;
+                    string val = null;
+                    if (!string.IsNullOrWhiteSpace(l) && separator > 0)
                     {
-                        var separator = l.IndexOf(':');
-                        return separator >= 0 
-                            ? new KeyValuePair<string, string>(l.Substring(0, separator).Trim(), l.Substring(separator + 1).Trim()) 
-                            : new KeyValuePair<string, string>(l, null);
-                    })
-                    .ToDictionary(p => p.Key, p => p.Value);
-
+                        key = l.Substring(0, separator).Trim();
+                        val = l.Substring(separator + 1).Trim();
+                        if (String.Compare(key, "processor", true) == 0)
+                        {
+                            suffix = "." + val;
+                        }
+                        Console.WriteLine(key + suffix + " = " + val);
+                        settings.Add(key + suffix, val);
+                    }
+                    else
+                    {
+                        suffix = "";
+                    }
+                }
                 return new Board(settings);
             }
             catch
