@@ -215,7 +215,6 @@ namespace Raspberry
                         {
                             suffix = "." + val;
                         }
-                        Console.WriteLine(key + suffix + " = " + val);
                         settings.Add(key + suffix, val);
                     }
                     else
