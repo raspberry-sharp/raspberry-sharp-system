@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Raspberry.System")]
 [assembly: AssemblyDescription("Raspberry Pi System Mono Library")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Raspberry#")]
 [assembly: AssemblyProduct("Raspberry.System")]
 [assembly: AssemblyCopyright("www.raspberry-sharp.org, 2012-2013")]
 [assembly: AssemblyTrademark("")]
