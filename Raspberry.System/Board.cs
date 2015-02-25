@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 
 #endregion
 
@@ -19,9 +18,9 @@ namespace Raspberry
         #region Fields
 
         private static readonly Lazy<Board> board = new Lazy<Board>(LoadBoard);
-        private readonly Dictionary<string, string> settings;
 
-        private string[] raspberryPiProcessor = new string[] { "BCM2708", "BCM2709" };
+        private readonly Dictionary<string, string> settings;
+        private readonly HashSet<string> raspberryPiProcessors = new HashSet<string>(new[]{ "BCM2708", "BCM2709" }, StringComparer.InvariantCultureIgnoreCase);
         
         #endregion
 
@@ -52,7 +51,7 @@ namespace Raspberry
         /// </value>
         public bool IsRaspberryPi
         {
-            get { return (Array.IndexOf(raspberryPiProcessor, Processor) >= 0); }
+            get { return raspberryPiProcessors.Contains(Processor); }
         }
 
         /// <summary>
@@ -76,7 +75,9 @@ namespace Raspberry
             {
                 string revision;
                 int firmware;
-                if (settings.TryGetValue("Revision", out revision) && !string.IsNullOrEmpty(revision) && int.TryParse(revision, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out firmware))
+                if (settings.TryGetValue("Revision", out revision) 
+                    && !string.IsNullOrEmpty(revision) 
+                    && int.TryParse(revision, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out firmware))
                     return firmware;
 
                 return 0;
@@ -90,7 +91,8 @@ namespace Raspberry
         {
             get { 
                 string serial;
-                if (settings.TryGetValue("Serial", out serial) && !string.IsNullOrEmpty(serial))
+                if (settings.TryGetValue("Serial", out serial) 
+                    && !string.IsNullOrEmpty(serial))
                     return serial;
 
                 return null;
@@ -199,29 +201,28 @@ namespace Raspberry
             try
             {
                 const string filePath = "/proc/cpuinfo";
-                string[] cpuInfo = File.ReadAllLines(filePath);
-                Dictionary<string, string> settings = new Dictionary<string, string>();
-                string suffix = "";
+                
+                var cpuInfo = File.ReadAllLines(filePath);
+                var settings = new Dictionary<string, string>();
+                var suffix = string.Empty;
+                
                 foreach(var l in cpuInfo)
                 {
                     var separator = l.IndexOf(':');
-                    string key = l;
-                    string val = null;
+
                     if (!string.IsNullOrWhiteSpace(l) && separator > 0)
                     {
-                        key = l.Substring(0, separator).Trim();
-                        val = l.Substring(separator + 1).Trim();
-                        if (String.Compare(key, "processor", true) == 0)
-                        {
+                        var key = l.Substring(0, separator).Trim();
+                        var val = l.Substring(separator + 1).Trim();
+                        if (string.Equals(key, "processor", StringComparison.InvariantCultureIgnoreCase))
                             suffix = "." + val;
-                        }
+
                         settings.Add(key + suffix, val);
                     }
                     else
-                    {
                         suffix = "";
-                    }
                 }
+
                 return new Board(settings);
             }
             catch
