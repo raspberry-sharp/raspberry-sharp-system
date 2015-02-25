@@ -6,6 +6,9 @@ using System;
 
 namespace Raspberry.Timers
 {
+    /// <summary>
+    /// Provides an interface for a timer.
+    /// </summary>
     public interface ITimer
     {
         #region Properties

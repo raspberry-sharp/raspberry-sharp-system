@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 
 #endregion
 
@@ -19,9 +18,9 @@ namespace Raspberry
         #region Fields
 
         private static readonly Lazy<Board> board = new Lazy<Board>(LoadBoard);
-        private readonly Dictionary<string, string> settings;
 
-        private const string raspberryPiProcessor = "BCM2708";
+        private readonly Dictionary<string, string> settings;
+        private readonly HashSet<string> raspberryPiProcessors = new HashSet<string>(new[]{ "BCM2708", "BCM2709" }, StringComparer.InvariantCultureIgnoreCase);
         
         #endregion
 
@@ -52,7 +51,7 @@ namespace Raspberry
         /// </value>
         public bool IsRaspberryPi
         {
-            get { return string.Equals(Processor, raspberryPiProcessor, StringComparison.InvariantCultureIgnoreCase); }
+            get { return raspberryPiProcessors.Contains(Processor); }
         }
 
         /// <summary>
@@ -76,7 +75,9 @@ namespace Raspberry
             {
                 string revision;
                 int firmware;
-                if (settings.TryGetValue("Revision", out revision) && !string.IsNullOrEmpty(revision) && int.TryParse(revision, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out firmware))
+                if (settings.TryGetValue("Revision", out revision) 
+                    && !string.IsNullOrEmpty(revision) 
+                    && int.TryParse(revision, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out firmware))
                     return firmware;
 
                 return 0;
@@ -90,7 +91,8 @@ namespace Raspberry
         {
             get { 
                 string serial;
-                if (settings.TryGetValue("Serial", out serial) && !string.IsNullOrEmpty(serial))
+                if (settings.TryGetValue("Serial", out serial) 
+                    && !string.IsNullOrEmpty(serial))
                     return serial;
 
                 return null;
@@ -139,6 +141,10 @@ namespace Raspberry
                     case 0x10:
                         return 'B';
 
+                    case 0x1040:
+                    case 0x1041:
+                        return '2';
+
                     default:
                         return (char)0;
                 }
@@ -175,6 +181,10 @@ namespace Raspberry
 
                     case 0x10:
                         return 3;   // Model B+, rev3
+                    
+                    case 0x1040:
+                    case 0x1041:
+                        return 4;
  
                     default:
                         return 0;   // Unknown
@@ -191,16 +201,27 @@ namespace Raspberry
             try
             {
                 const string filePath = "/proc/cpuinfo";
-                var settings = File.ReadAllLines(filePath)
-                    .Where(l => !string.IsNullOrEmpty(l))
-                    .Select(l =>
+                
+                var cpuInfo = File.ReadAllLines(filePath);
+                var settings = new Dictionary<string, string>();
+                var suffix = string.Empty;
+                
+                foreach(var l in cpuInfo)
+                {
+                    var separator = l.IndexOf(':');
+
+                    if (!string.IsNullOrWhiteSpace(l) && separator > 0)
                     {
-                        var separator = l.IndexOf(':');
-                        return separator >= 0 
-                            ? new KeyValuePair<string, string>(l.Substring(0, separator).Trim(), l.Substring(separator + 1).Trim()) 
-                            : new KeyValuePair<string, string>(l, null);
-                    })
-                    .ToDictionary(p => p.Key, p => p.Value);
+                        var key = l.Substring(0, separator).Trim();
+                        var val = l.Substring(separator + 1).Trim();
+                        if (string.Equals(key, "processor", StringComparison.InvariantCultureIgnoreCase))
+                            suffix = "." + val;
+
+                        settings.Add(key + suffix, val);
+                    }
+                    else
+                        suffix = "";
+                }
 
                 return new Board(settings);
             }
