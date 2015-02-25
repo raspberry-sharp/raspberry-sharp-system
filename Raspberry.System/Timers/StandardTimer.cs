@@ -6,6 +6,9 @@ using System;
 
 namespace Raspberry.Timers
 {
+    /// <summary>
+    /// Represents a timer.
+    /// </summary>
     public class StandardTimer : ITimer
     {
         #region Fields
