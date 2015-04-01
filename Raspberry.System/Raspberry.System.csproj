@@ -38,12 +38,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Board.cs" />
+    <Compile Include="ConnectorPinout.cs" />
+    <Compile Include="Model.cs" />
+    <Compile Include="Processor.cs" />
     <Compile Include="Timers\Interop.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Timers\HighResolutionTimer.cs" />
     <Compile Include="Timers\ITimer.cs" />
     <Compile Include="Timers\StandardTimer.cs" />
     <Compile Include="Timers\Timer.cs" />
+    <Compile Include="Timers\TimeSpanUtility.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

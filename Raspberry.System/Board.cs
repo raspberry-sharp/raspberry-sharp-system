@@ -12,22 +12,29 @@ namespace Raspberry
     /// <summary>
     /// Represents the Raspberry Pi mainboard.
     /// </summary>
-    /// <remarks>Version and revisions are based on <see cref="http://raspberryalphaomega.org.uk/2013/02/06/automatic-raspberry-pi-board-revision-detection-model-a-b1-and-b2/"/>.</remarks>
+    /// <remarks>
+    /// Version and revisions are based on <see cref="http://raspberryalphaomega.org.uk/2013/02/06/automatic-raspberry-pi-board-revision-detection-model-a-b1-and-b2/"/>.
+    /// <see cref="http://www.raspberrypi-spy.co.uk/2012/09/checking-your-raspberry-pi-board-version/"/> for information.
+    /// </remarks>
     public class Board
     {
         #region Fields
 
         private static readonly Lazy<Board> board = new Lazy<Board>(LoadBoard);
-
-        private readonly Dictionary<string, string> settings;
-        private readonly HashSet<string> raspberryPiProcessors = new HashSet<string>(new[]{ "BCM2708", "BCM2709" }, StringComparer.InvariantCultureIgnoreCase);
         
+        private readonly Dictionary<string, string> settings;
+        private readonly Lazy<Model> model;
+        private readonly Lazy<ConnectorPinout> connectorPinout;
+
         #endregion
 
         #region Instance Management
 
         private Board(Dictionary<string, string> settings)
         {
+            model = new Lazy<Model>(LoadModel);
+            connectorPinout = new Lazy<ConnectorPinout>(LoadConnectorPinout);
+            
             this.settings = settings;
         }
 
@@ -51,18 +58,39 @@ namespace Raspberry
         /// </value>
         public bool IsRaspberryPi
         {
-            get { return raspberryPiProcessors.Contains(Processor); }
+            get
+            {
+                return Processor != Processor.Unknown;
+            }
         }
 
         /// <summary>
-        /// Gets the processor.
+        /// Gets the processor name.
         /// </summary>
-        public string Processor
+        /// <value>
+        /// The name of the processor.
+        /// </value>
+        public string ProcessorName
         {
             get
             {
                 string hardware;
                 return settings.TryGetValue("Hardware", out hardware) ? hardware : null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the processor.
+        /// </summary>
+        /// <value>
+        /// The processor.
+        /// </value>
+        public Processor Processor
+        {
+            get
+            {
+                Processor processor;
+                return Enum.TryParse(ProcessorName, true, out processor) ? processor : Processor.Unknown;
             }
         }
 
@@ -117,79 +145,24 @@ namespace Raspberry
         /// <summary>
         /// Gets the model.
         /// </summary>
-        /// <returns>The model name (<c>A</c> or <c>B</c>) if known; otherwise, <c>(char)0</c>.</returns>
-        public char Model
+        /// <value>
+        /// The model.
+        /// </value>
+        public Model Model
         {
-            get
-            {
-                var firmware = Firmware;
-                switch(firmware & 0xFFFF)
-                {
-                    case 0x7:
-                    case 0x8:
-                    case 0x9:
-                        return 'A';
-
-                    case 0x2:
-                    case 0x3:
-                    case 0x4:
-                    case 0x5:
-                    case 0x6:
-                    case 0xd:
-                    case 0xe:
-                    case 0xf:
-                    case 0x10:
-                        return 'B';
-
-                    case 0x1040:
-                    case 0x1041:
-                        return '2';
-
-                    default:
-                        return (char)0;
-                }
-            }
+            get { return model.Value; }
         }
 
         /// <summary>
-        /// Gets the board revision.
+        /// Gets the connector revision.
         /// </summary>
-        /// <returns>The board revision for the given <see cref="Model"/> if known; otherwise, <c>0</c>.</returns>
-        public int Revision
+        /// <value>
+        /// The connector revision.
+        /// </value>
+        /// <remarks>See <see cref="http://raspi.tv/2014/rpi-gpio-quick-reference-updated-for-raspberry-pi-b"/> for more information.</remarks>
+        public ConnectorPinout ConnectorPinout
         {
-            get
-            {
-                var firmware = Firmware;
-                switch (firmware & 0xFFFF)
-                {
-                    case 0x7:
-                    case 0x8:
-                    case 0x9:
-                        return 1;   // Model A, rev1
-
-                    case 0x2:
-                    case 0x3:
-                        return 1;   // Model B, rev1
-
-                    case 0x4:
-                    case 0x5:
-                    case 0x6:
-                    case 0xd:
-                    case 0xe:
-                    case 0xf:
-                        return 2;   // Model B, rev2
-
-                    case 0x10:
-                        return 3;   // Model B+, rev3
-                    
-                    case 0x1040:
-                    case 0x1041:
-                        return 4;
- 
-                    default:
-                        return 0;   // Unknown
-                }
-            }
+            get { return connectorPinout.Value; }
         }
 
         #endregion
@@ -228,6 +201,68 @@ namespace Raspberry
             catch
             {
                 return new Board(new Dictionary<string, string>());
+            }
+        }
+
+        private Model LoadModel()
+        {
+            var firmware = Firmware;
+            switch (firmware & 0xFFFF)
+            {
+                case 0x2:
+                case 0x3:
+                    return Model.BRev1;
+
+                case 0x4:
+                case 0x5:
+                case 0x6:
+                case 0xd:
+                case 0xe:
+                case 0xf:
+                    return Model.BRev2;
+
+                case 0x7:
+                case 0x8:
+                case 0x9:
+                    return Model.A;
+
+                case 0x10:
+                    return Model.BPlus;
+
+                case 0x11:
+                    return Model.ComputeModule;
+
+                case 0x12:
+                    return Model.APlus;
+
+                case 0x1040:
+                case 0x1041:
+                    return Model.B2;
+
+                default:
+                    return Model.Unknown;
+            }
+        }
+
+        private ConnectorPinout LoadConnectorPinout()
+        {
+            switch (Model)
+            {
+                case Model.BRev1:
+                    return ConnectorPinout.Rev1;
+
+                case Model.BRev2:
+                case Model.A:
+                    return ConnectorPinout.Rev2;
+
+                case Model.BPlus:
+                case Model.ComputeModule:
+                case Model.APlus:
+                case Model.B2:
+                    return ConnectorPinout.Plus;
+
+                default:
+                    return ConnectorPinout.Unknown;
             }
         }
 
