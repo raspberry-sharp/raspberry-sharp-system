@@ -14,12 +14,12 @@ namespace Raspberry.Timers
         #region Properties
 
         /// <summary>
-        /// Gets or sets the interval, in milliseconds.
+        /// Gets or sets the interval.
         /// </summary>
         /// <value>
-        /// The interval, in milliseconds.
+        /// The interval.
         /// </value>
-        decimal Interval { get; set; }
+        TimeSpan Interval { get; set; }
 
         /// <summary>
         /// Gets or sets the action.
@@ -36,8 +36,8 @@ namespace Raspberry.Timers
         /// <summary>
         /// Starts this instance.
         /// </summary>
-        /// <param name="startDelay">The delay before the first occurence, in milliseconds.</param>
-        void Start(decimal startDelay);
+        /// <param name="startDelay">The delay before the first occurence.</param>
+        void Start(TimeSpan startDelay);
 
         /// <summary>
         /// Stops this instance.

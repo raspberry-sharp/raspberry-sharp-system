@@ -1,5 +1,6 @@
 #region References
 
+using System;
 using System.Threading;
 
 #endregion
@@ -30,16 +31,16 @@ namespace Raspberry.Timers
         /// <summary>
         /// Sleeps during the specified time.
         /// </summary>
-        /// <param name="time">The time, in milliseconds.</param>
-        public static void Sleep(decimal time)
+        /// <param name="time">The time.</param>
+        public static void Sleep(TimeSpan time)
         {
-            if (time < 0)
+            if (time.TotalMilliseconds < 0)
                 return;
 
             if (Board.Current.IsRaspberryPi)
                 HighResolutionTimer.Sleep(time);
             else
-                Thread.Sleep((int)time);
+                Thread.Sleep(time);
         }
 
         #endregion

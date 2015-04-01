@@ -15,8 +15,8 @@ namespace Raspberry.Timers
     {
         #region Fields
 
-        private decimal delay;
-        private decimal interval;
+        private TimeSpan delay;
+        private TimeSpan interval;
         private Action action;
 
         private Thread thread;
@@ -41,17 +41,17 @@ namespace Raspberry.Timers
         #region Properties
 
         /// <summary>
-        /// Gets or sets the interval, in milliseconds.
+        /// Gets or sets the interval.
         /// </summary>
         /// <value>
-        /// The interval, in milliseconds.
+        /// The interval.
         /// </value>
-        public decimal Interval
+        public TimeSpan Interval
         {
             get { return interval; }
             set
             {
-                if (value > uint.MaxValue/1000)
+                if (value.TotalMilliseconds > uint.MaxValue/1000)
                     throw new ArgumentOutOfRangeException("value", interval, "Interval must be lower than or equal to uint.MaxValue / 1000");
 
                 interval = value;
@@ -84,27 +84,28 @@ namespace Raspberry.Timers
         /// Sleeps the specified delay.
         /// </summary>
         /// <param name="delay">The delay.</param>
-        public static void Sleep(decimal delay)
+        public static void Sleep(TimeSpan delay)
         {
             // Based on [BCM2835 C library](http://www.open.com.au/mikem/bcm2835/)
 
             // Calling nanosleep() takes at least 100-200 us, so use it for
             // long waits and use a busy wait on the hires timer for the rest.
-            var start = DateTime.Now.Ticks;
+            var start = DateTime.UtcNow.Ticks;
 
-            if (delay >= 100)
+            var millisecondDelay = (decimal)delay.TotalMilliseconds;
+            if (millisecondDelay >= 100)
             {
                 // Do not use high resolution timer for long interval (>= 100ms)
-                Thread.Sleep((int) delay);
+                Thread.Sleep(delay);
             }
-            else if (delay > 0.450m)
+            else if (millisecondDelay > 0.450m)
             {
                 var t1 = new Interop.timespec();
                 var t2 = new Interop.timespec();
 
                 // Use nanosleep if interval is higher than 450µs
                 t1.tv_sec = (IntPtr)0;
-                t1.tv_nsec = (IntPtr)((long) (delay * 1000000) - nanoSleepOffset);
+                t1.tv_nsec = (IntPtr)((long) (millisecondDelay * 1000000) - nanoSleepOffset);
 
                 Interop.nanosleep(ref t1, ref t2);
             }
@@ -112,7 +113,7 @@ namespace Raspberry.Timers
             {
                 while (true)
                 {
-                    if ((DateTime.Now.Ticks - start) * 0.0001m >= delay)
+                    if ((DateTime.UtcNow.Ticks - start) * 0.0001m >= millisecondDelay)
                         break;
                 }
             }
@@ -123,19 +124,19 @@ namespace Raspberry.Timers
         /// Starts this instance.
         /// </summary>
         /// <param name="startDelay">The delay before the first occurence, in milliseconds.</param>
-        public void Start(decimal startDelay)
+        public void Start(TimeSpan startDelay)
         {
-            if (startDelay > uint.MaxValue/1000)
+            if (startDelay.TotalMilliseconds > uint.MaxValue/1000)
                 throw new ArgumentOutOfRangeException("startDelay", startDelay, "Delay must be lower than or equal to uint.MaxValue / 1000");
 
             lock (this)
             {
-                if (thread == null)
-                {
-                    delay = startDelay;
-                    thread = new Thread(ThreadProcess);
-                    thread.Start();
-                }
+                if (thread != null) 
+                    return;
+                
+                delay = startDelay;
+                thread = new Thread(ThreadProcess);
+                thread.Start();
             }
         }
 
@@ -146,12 +147,12 @@ namespace Raspberry.Timers
         {
             lock (this)
             {
-                if (thread != null)
-                {
-                    if (thread != Thread.CurrentThread)
-                        thread.Abort();
-                    thread = null;
-                }
+                if (thread == null) 
+                    return;
+
+                if (thread != Thread.CurrentThread)
+                    thread.Abort();
+                thread = null;
             }
         }
 
@@ -173,10 +174,10 @@ namespace Raspberry.Timers
                             t1.tv_sec = (IntPtr) 0;
                             t1.tv_nsec = (IntPtr) 1000000;
 
-                            var start = DateTime.Now.Ticks;
+                            var start = DateTime.UtcNow.Ticks;
                             Interop.nanosleep(ref t1, ref t2);
 
-                            return a + ((DateTime.Now.Ticks - start) * 100 - 1000000);
+                            return a + ((DateTime.UtcNow.Ticks - start) * 100 - 1000000);
                         },
                     a => (int)(a / referenceCount));
         }

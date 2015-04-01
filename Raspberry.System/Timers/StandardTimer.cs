@@ -13,7 +13,7 @@ namespace Raspberry.Timers
     {
         #region Fields
 
-        private decimal interval;
+        private TimeSpan interval;
         private Action action;
 
         private bool isStarted;
@@ -29,14 +29,14 @@ namespace Raspberry.Timers
         /// <value>
         /// The interval, in milliseconds.
         /// </value>
-        public decimal Interval
+        public TimeSpan Interval
         {
             get { return interval; }
             set
             {
                 interval = value;
                 if (isStarted)
-                    Start(0);
+                    Start(TimeSpan.Zero);
             }
         }
 
@@ -66,14 +66,14 @@ namespace Raspberry.Timers
         /// Starts this instance.
         /// </summary>
         /// <param name="startDelay">The delay before the first occurence, in milliseconds.</param>
-        public void Start(decimal startDelay)
+        public void Start(TimeSpan startDelay)
         {
             lock (this)
             {
-                if (!isStarted && interval >= 1.0m)
+                if (!isStarted && interval.TotalMilliseconds >= 1)
                 {
                     isStarted = true;
-                    timer = new System.Threading.Timer(OnElapsed, null, (int) startDelay, (int) interval);
+                    timer = new System.Threading.Timer(OnElapsed, null, startDelay, interval);
                 }
                 else
                     Stop();
