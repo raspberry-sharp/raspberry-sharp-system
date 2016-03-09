@@ -262,6 +262,7 @@ namespace Raspberry
                 case Model.ComputeModule:
                 case Model.APlus:
                 case Model.B2:
+                case Model.B3:
                     return ConnectorPinout.Plus;
 
                 default:
