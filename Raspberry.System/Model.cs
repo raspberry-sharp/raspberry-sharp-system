@@ -46,7 +46,12 @@ namespace Raspberry
         /// <summary>
         /// Pi 2 Model B.
         /// </summary>
-        B2
+        B2,
+
+        /// <summary>
+        /// Pi 3 Model B.
+        /// </summary>
+        B3
     }
 
     /// <summary>
@@ -79,6 +84,8 @@ namespace Raspberry
                     return "Raspberry Pi Compute Module";
                 case Model.B2:
                     return "Raspberry Pi 2 Model B";
+                case Model.B3:
+                    return "Raspberry Pi 3 Model B";
 
                 default:
                     throw new ArgumentOutOfRangeException("model");
