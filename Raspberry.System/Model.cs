@@ -49,6 +49,11 @@ namespace Raspberry
         B2,
 
         /// <summary>
+        /// Pi Zero.
+        /// </summary>
+        Zero,
+
+        /// <summary>
         /// Pi 3 Model B.
         /// </summary>
         B3
@@ -84,6 +89,8 @@ namespace Raspberry
                     return "Raspberry Pi Compute Module";
                 case Model.B2:
                     return "Raspberry Pi 2 Model B";
+                case Model.Zero:
+                    return "Raspberry Pi Zero";
                 case Model.B3:
                     return "Raspberry Pi 3 Model B";
 
